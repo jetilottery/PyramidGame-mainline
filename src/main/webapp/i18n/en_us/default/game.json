@@ -1,0 +1,72 @@
+{
+    "version":"8-23-2017 2:01PM Tale of the Red Cliffs Default SM",
+	"audioLoader": {
+		"yes": "Yes",
+		"no": "No",
+		"confirm": "Would you like sound?"
+	},
+	"title": "Tale of the Red Cliffs",
+	"MenuCommand": {
+            "WLA":{
+                "howToPlay": "Game Rules",
+		"payTable": "Prize Table",
+                "price": "Price",
+                "stake": "Stake",
+                "balance": "Balance"                
+            },
+            "Commercial":{
+                "howToPlay": "Game Rules",
+		"payTable": "Paytable",
+                "price": "Price",
+                "stake": "Stake",
+                "balance": "Balance"     
+            },
+            "audio": {
+		"on": "On",
+		"off": "Off",
+		"sound": "Sound"
+            }
+	},
+	"Error": {
+		},
+	"Game": {
+            "demo": "TRY ",
+            "button_buy": "BUY",
+            "button_try": "TRY",
+            "button_continue": "CONTINUE",
+            "button_move2moneyGame": "MOVE TO MONEY",
+            "button_autoPlay": "REVEAL ALL",
+            "button_playAgain":"PLAY AGAIN",
+            "button_MTMPlayAgain":"TRY AGAIN",
+            "wager": "TICKET COST",
+            "meter_wager": "Ticket Cost: ",            
+            "balance": "Balance: ",
+            "wins": "Win: ",
+            "wins_demo": "Demo Win: ",
+            "message_nonWin": "BETTER LUCK\nNEXT TIME",
+            "message_buyWin": "CONGRATULATIONS!\nYou have won",
+            "message_tryWin": "THANKS FOR PLAYING!\nYou could have won",
+            "message_anonymousTryWin": "THANKS FOR PLAYING!You could have won",
+            "message_close": "OK",
+            "button_exit": "EXIT",
+            "session_timeout_warning_exit_button": "EXIT",
+            "error_button_exit": "EXIT",
+            "warning_button_continue": "KEEP PLAYING",
+            "warning_button_exitGame": "EXIT",
+            "warning_title": "WARNING",
+            "error_title": "ERROR",
+            "win_up_to":"WIN UP TO",
+            "win_up_to_mark":"!",
+            "tutorial_title":"HOW TO PLAY",
+            "tutorial_01":"Select the shields to reveal YOUR SYMBOLS and their prize values.",
+            "tutorial_00":"Select the copper plates to reveal WINNING SYMBOLS.",
+            "tutorial_02":"If a YOUR SYMBOL matches a WINNING SYMBOL, you win the YOUR SYMBOL’s prize value.",
+            "tutorial_03":"If an arrow strikes a YOUR SYMBOL and reveals a multiplier, you win the YOUR SYMBOL’s prize value multiplied by the multiplier's value!",
+            "your_number":"YOUR SYMBOLS",
+            "luck_number":"WINNING SYMBOLS",
+            "meter_division":" | ",
+            "buttonClose":"X",
+            "prizeLevel": "Prize Level",
+            "prizeValue": "Prize Value"        
+	}
+}

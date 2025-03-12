@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+        <title>Splash</title>
+        <style type="text/css">
+            html,body {
+                background-color: black;
+                background-position:center center;
+                background-repeat:no-repeat;
+                width: 100%;
+                height:100%;
+                margin:0;
+                padding:0;
+                background-size: cover;
+                overflow:hidden;
+                text-align:center;
+            }
+
+            #load{
+                margin:0;
+            }
+
+            #loadingBar{
+                margin:0 auto;
+                position: absolute;
+                background-size: 100% 100%;
+            }
+            #cursor{
+                position:relative;
+                background-size: 100% 100%;
+            }
+            #progressBar{
+                position:relative;
+                background-size: 100% 100%;
+                overflow: hidden;
+            }
+            #progressBarLoader{
+                background-size: 100% 100%;
+            }
+            #copyRightText{
+                margin:0 auto;
+                position: absolute;
+                bottom: 0px;
+                color:#fff;
+                text-align:center;
+                line-height: 20px;
+                font-weight:bold;
+            }
+        </style>
+</head>
+    <body>
+        <div id="load">
+            <div id="loadingBar">
+                <div id="progressBar">
+                    <div id="progressBarLoader"></div>
+                </div>
+                <div id="cursor"></div>
+            </div>
+            <div id ="copyRight">
+                <center id="copyRightText"></center>
+            </div>
+        </div>
+        <script>
+            var fileNameSuffix = window._cacheFlag.queryStr;
+            var orient = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+            var assetPack = window.location.search.match(/&?assetPack=(\w+)&?/)[1];
+            var language = window.location.search.match(/&?language=(\w+)&?/)[1];
+            var skin = window.location.search.match(/&?skincode=(\w+)&?/)[1];
+            var i18nParent = '';
+            var jLotteryCustom = false;
+            var softwareIdM = null;
+
+            var softId = window.location.search.match(/&?softwareid=(\d+.\d+.\d+)?/);
+            var showCopyRight = false;
+            if(softId){
+                if(softId[1].split('-')[2].charAt(0) != '0'){
+                    showCopyRight = true;
+                }                
+            }         
+            
+            var custom = window.location.search.match(/&?jLotteryCustom=(\w+)&?/);
+            if(custom){
+                jLotteryCustom = Number(custom[1]) === 1? true: false;
+            } 
+            var IdM= window.location.search.match(/&?softwareIdM=(\w+)&?/);
+            if(IdM){
+                softwareIdM = IdM[1];
+            }
+
+            var scale, heightScale = 1 / 6, cursorScale = 2 / 3;
+            if (orient === 'landscape') {
+                scale = 0.5;
+            } else {
+                scale = 0.7;
+            }
+
+            var load = document.getElementById('load');
+            var loadingBar = document.getElementById('loadingBar');
+            var progressBar = document.getElementById('progressBar');
+            var progressBarLoader = document.getElementById('progressBarLoader');
+            var cursor = document.getElementById('cursor');
+            var copyRight = document.getElementById('copyRightText');
+
+            var loadingBarW, loadingBarH = 64, progressBarW, progressBarH = 62, cursorStaticW = 50, cursorStaticH = 50, cursorW, cursorH;
+            loadingBar.style.height = loadingBarH + 'px';
+            progressBar.style.width = '0px';
+            progressBar.style.height = progressBarH + 'px';
+            progressBar.style.top = (loadingBarH - progressBarH) / 2 + 'px';
+            progressBarLoader.style.height = progressBarH + "px";
+
+            var loadingImgUrl, loadingBarUrl, loadingProgressUrl, cursorUrl, copyRightText;
+
+            function httpGetJson(url, successCallback, errorCallback) {
+                console.log(url);
+                var httpReq = new XMLHttpRequest();
+                httpReq.withCredentials = true;
+                httpReq.addEventListener('load', function (event) {
+                    if (event.target.status >= 200 && event.target.status < 300) {
+                        successCallback(event);
+                    }
+                    if(event.target.status === 404){
+                        if(errorCallback){
+                            errorCallback();
+                        }
+                    }
+                });
+                httpReq.open('GET', url);
+                httpReq.send();
+            }
+            function drawText() {
+                if (copyRightText) {
+                    copyRight.innerHTML = copyRightText;
+                    copyRightText = null;
+                }
+            }
+            function setSplashFooter(httpReq) {
+                if (httpReq.status !== 404) {
+                        var splashJSON = JSON.parse(httpReq.responseText);
+                        Object.freeze(splashJSON);
+                        copyRightText = splashJSON.splashScreen.footer.shortVersion;
+                        drawText();
+                }
+            }
+			
+			function getI18nParent(){
+                if(softId){//SKB env case
+                    if(window.location.search.match(/&?custom=true&?/)){
+                        var parentFolder = window.location.pathname.match(/\/([^\/]+\/)[^\/]+$/)[1];
+                        i18nParent = '/custom_lang/'+skin+'/'+parentFolder;
+                    }
+                }else{
+                    if(jLotteryCustom){//mproxy&jLottery case
+                        if(softwareIdM){
+                            i18nParent = '/custom_lang/'+skin+'/'+softwareIdM+'/';
+                        }else{
+                            alert('Cannot load custom asset.');
+                        }
+                    }
+                }
+			}		 
+			
+            function loadSplashJson(httpReq){
+                var spJsonUrl = i18nParent+'i18n/' + language + '/default/splash.json';
+				var siteOrSkinJsonURL = i18nParent+'i18n/' + language + '/default.json';
+                var skinJSON = JSON.parse(httpReq.responseText);
+                var skinArr = skinJSON[language];
+                for (var i = 0; i < skinArr.length; i++) {
+                    if (skinArr[i].indexOf(language + '/' + skin + '.json') > -1) {
+                        siteOrSkinJsonURL = i18nParent+'i18n/' + skinArr[i];
+                        spJsonUrl = i18nParent+'i18n/' + language + '/' + skin + '/splash.json';
+                        break;
+                    }
+                }
+		loadI18nSplashImages(siteOrSkinJsonURL);
+                if(showCopyRight){
+                    httpGetJson(spJsonUrl + fileNameSuffix, function (event) {
+                        httpReq = event.target;
+                        setSplashFooter(httpReq);
+                    });
+                }
+            }
+			
+			function loadLanguageJson(langJsonUrl){
+				httpGetJson(langJsonUrl, function(event){
+					httpReq = event.target;
+					if (httpReq.status !== 404) {
+						loadSplashJson(httpReq);
+					}
+				});
+			}
+            //get json file under i18n/language.json, which content like {"en_us":["en_us/12.json","en_us/default.json"]}
+			function loadI18nJson(){
+                httpGetJson(i18nParent+'i18n.json' + fileNameSuffix, function(event){
+                    var httpReq = event.target;
+                    if (httpReq.status !== 404) {
+                         var i18nJSON = JSON.parse(httpReq.responseText);
+                         var i18nArr = i18nJSON['i18n'];
+                         var langJson = null;
+                         for(var i=0; i< i18nArr.length; i++){
+                             if (i18nArr[i].indexOf('i18n/' + language + '.json') > -1) {
+                                 langJson = i18nParent+i18nArr[i] + fileNameSuffix;
+                                 break;
+                             }
+                         }
+                         if(langJson == null){
+                            language = 'default';
+                            langJson = i18nParent+'i18n/default.json' + fileNameSuffix;
+                        }
+                        loadLanguageJson(langJson);
+                    }
+                });
+            }
+
+            function setSplashImage(event, assetHome) {
+                var httpRep = event.target;
+                if (httpRep.status !== 404) {
+                    var json = JSON.parse(httpRep.responseText);
+                    var splashUrlArray = json['splash'];
+                    if(splashUrlArray){
+                        for (var i = 0; i < splashUrlArray.length; i++) {
+                            if (splashUrlArray[i].indexOf(orient + 'Loading') > -1 && !loadingImgUrl) {
+                                loadingImgUrl = assetHome + splashUrlArray[i] + fileNameSuffix;
+                                document.body.style.backgroundImage = 'url(' + loadingImgUrl +')';
+                            } else if (splashUrlArray[i].indexOf('loadingBarBack') > -1 && !loadingBarUrl) {
+                                loadingBarUrl = assetHome + splashUrlArray[i] + fileNameSuffix;
+                                loadingBar.style.backgroundImage = 'url(' + loadingBarUrl + ')';
+                            } else if (splashUrlArray[i].indexOf('loadingBarFront') > -1 && !loadingProgressUrl) {
+                                loadingProgressUrl = assetHome + splashUrlArray[i] + fileNameSuffix;
+                                progressBarLoader.style.backgroundImage = 'url(' + loadingProgressUrl + ')';
+                            } else if (splashUrlArray[i].indexOf('loadingBarButton') > -1 && !cursorUrl) {
+                                cursorUrl = assetHome + splashUrlArray[i] + fileNameSuffix;
+                                cursor.style.backgroundImage = 'url(' + cursorUrl + ')';
+                            }
+                        }
+                    }
+                }
+            }
+            function getI18nAssetPackJsonURL(event) {
+                var httpRep = event.target;
+                var assetUrl = null;
+                if (httpRep.status !== 404) {
+                    var json = JSON.parse(httpRep.responseText);
+                    var specialAssets = json['assetPacks'];
+                    if (specialAssets){
+                        for (var i = 0; i < specialAssets.length; i++) {
+                            if (specialAssets[i].indexOf(assetPack) > -1) {
+                                    assetUrl = i18nParent+'i18n/' + language + '/' + specialAssets[i];
+                                    break;
+                            }
+                        }
+                    }
+                }
+                return assetUrl;
+            }
+            function loadBasicSplashImages(){
+                var assetUrl = 'assetPacks/' + assetPack + '.json';
+                httpGetJson(assetUrl + fileNameSuffix, function(event){
+                        var assetHome = 'assetPacks/';
+                        setSplashImage(event, assetHome);
+                });
+            }
+            function loadI18nSplashImages(siteOrSkinUrl) {
+                //get i18n/language/siteId.json, which content like 
+                //{"12":["12/load.json","12/help.html","12/paytable.html","12/splash.json"],"assetPacks":["12/assetPacks/desktop.json","12/assetPacks/mobile.json"]}
+                httpGetJson(siteOrSkinUrl + fileNameSuffix, function (event) {
+                    var assetUrl = getI18nAssetPackJsonURL(event);
+                    if(assetUrl){
+                        httpGetJson(assetUrl + fileNameSuffix, function (event) {
+                            var assetHome = assetUrl.substring(0, assetUrl.lastIndexOf('/') + 1);
+                            setSplashImage(event, assetHome);
+                            if (!loadingImgUrl || !loadingBarUrl || !loadingProgressUrl || !cursorUrl) {
+                                    loadBasicSplashImages();
+                            }
+                        });
+                    }else{
+                        loadBasicSplashImages();
+                    }
+                });
+            }
+
+            window.addEventListener('message', function (e) {
+                var percentLoaded = e.data.loaded || null;
+                if (percentLoaded !== null) {
+                    var pp = Math.floor(progressBarW * Number(percentLoaded) / 100);
+                    progressBar.style.width = pp + 'px';
+                    cursor.style.left = (pp - Math.floor(cursorW / 2)) + 'px';
+                }
+            }, false);
+
+            function windowResized() {
+                var width, height;
+                load.style.width = document.body.clientWidth + 'px';
+                width = document.body.clientWidth;
+                load.style.height = document.body.clientHeight + 'px';
+                height = document.body.clientHeight;               
+
+                loadingBarW = Math.floor(width * scale);
+                progressBarW = loadingBarW - 4;
+                loadingBar.style.width = loadingBarW + 'px';
+                progressBarLoader.style.width = progressBarW + "px";
+                loadingBar.style.left = (width - loadingBarW) / 2 + 'px';
+                loadingBar.style.bottom = Math.floor(height * heightScale) + 'px';
+                progressBar.style.left = (loadingBarW - progressBarW) / 2 + 'px';
+                copyRight.style.width = load.style.width;
+
+                if (window.innerWidth >= 960) {
+                    cursor.style.width = cursorStaticW + 'px';
+                    cursorW = cursorStaticW;
+                    cursor.style.height = cursorStaticH + 'px';
+                    cursorH = cursorStaticH;
+                    cursor.style.top = -(progressBar.offsetTop + progressBar.clientHeight) + 'px';
+                    cursor.style.left = -Math.floor(cursorStaticW / 2) + 'px';
+                }else{
+                    cursorW = Math.floor(cursorStaticW * cursorScale);
+                    cursorH = Math.floor(cursorStaticH * cursorScale);
+                    cursor.style.width = cursorW + 'px';
+                    cursor.style.height = cursorH + 'px';
+                    cursor.style.top = -cursorH + 'px';
+                    cursor.style.left = -Math.floor(cursorW / 2) + 'px';
+                }
+            }
+            
+        function loadSplash(){
+            loadI18nJson();
+	    }
+        
+        getI18nParent();
+        loadSplash();
+
+
+            window.addEventListener('load', windowResized);
+            window.addEventListener('resize', windowResized);
+            windowResized();
+        </script>
+    </body>
+</html>
